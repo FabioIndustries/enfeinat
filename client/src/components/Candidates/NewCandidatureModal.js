@@ -21,22 +21,25 @@ import { useDispatch, useSelector } from "react-redux";
 import { createCandidate } from "../../actions/candidates";
 import { cleanString } from "../../core/functions";
 
+const initialState = {
+  title: "",
+  description: "",
+  tags: [],
+  availability: "available",
+  expMonths: 0,
+}
+
 const NewCandidatureModal = ({ visible, setVisible }) => {
   const auth = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  const [candidatureData, setCandidatureData] = useState({
-    title: "",
-    description: "",
-    tags: [],
-    availability: "available",
-    expMonths: 0,
-    creatorId: auth?.result?._id,
-  });
+  const [candidatureData, setCandidatureData] =  useState({ ...initialState, creatorId: auth?.result?._id,});
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     dispatch(createCandidate(candidatureData));
+    setCandidatureData({ ...initialState, creatorId: auth?.result?._id,});
+    setVisible(false);
   };
 
   const [currentTag, setCurrentTag] = useState("");
