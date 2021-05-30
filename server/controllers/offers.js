@@ -1,4 +1,5 @@
 import OfferModel from "../models/offer.js";
+import UserModel from "../models/user.js";
 import mongoose from "mongoose";
 
 export const getOffers = async (req, res) => {
@@ -38,11 +39,17 @@ export const getOffers = async (req, res) => {
 export const createOffer = async (req, res) => {
   const offer = req.body;
 
-  const newOffer = new OfferModel({ ...offer, creatorId: req.userId });
+  const user = await UserModel.findOne({ _id: req.userId });
+  const newOffer = new OfferModel({
+    ...offer,
+    creatorId: req.userId,
+  });
 
   try {
     await newOffer.save();
-    res.status(201).json(newOffer);
+    res
+      .status(201)
+      .json({ ...newOffer._doc, creator: [{ userName: user.userName }] });
   } catch (error) {
     res.status(409).json({ message: error });
   }
