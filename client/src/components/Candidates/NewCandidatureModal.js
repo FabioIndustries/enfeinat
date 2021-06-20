@@ -1,24 +1,8 @@
 import CIcon from "@coreui/icons-react";
-import {
-  CBadge,
-  CButton,
-  CCol,
-  CForm,
-  CFormGroup,
-  CInput,
-  CLabel,
-  CModal,
-  CModalBody,
-  CModalFooter,
-  CModalHeader,
-  CModalTitle,
-  CRow,
-  CSelect,
-  CTextarea,
-} from "@coreui/react";
-import React, { useState } from "react";
+import { CBadge, CButton, CCol, CForm, CFormGroup, CInput, CLabel, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle, CRow, CSelect, CTextarea } from "@coreui/react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createCandidate } from "../../actions/candidates";
+import { createCandidate, updateCandidate } from "../../actions/candidates";
 import { cleanString } from "../../core/functions";
 
 const initialState = {
@@ -27,18 +11,24 @@ const initialState = {
   tags: [],
   availability: "available",
   expMonths: 0,
-}
+};
 
-const NewCandidatureModal = ({ visible, setVisible }) => {
+const NewCandidatureModal = ({ visible, setVisible, candidature }) => {
   const auth = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  const [candidatureData, setCandidatureData] =  useState({ ...initialState, creatorId: auth?.result?._id,});
+  let initialFormState = candidature ? candidature : initialState;
+
+  useEffect(() => {
+    setCandidatureData(initialFormState);
+  }, [initialFormState]);
+
+  const [candidatureData, setCandidatureData] = useState({ ...initialState, creatorId: auth?.result?._id });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(createCandidate(candidatureData));
-    setCandidatureData({ ...initialState, creatorId: auth?.result?._id,});
+    candidature ? dispatch(updateCandidate(candidature._id, candidatureData)) : dispatch(createCandidate(candidatureData));
+    setCandidatureData({ ...initialState, creatorId: auth?.result?._id });
     setVisible(false);
   };
 
@@ -65,23 +55,18 @@ const NewCandidatureModal = ({ visible, setVisible }) => {
   };
 
   const handleRemoveTag = (tagToRemove) => {
-    const newTagList = candidatureData.tags.filter(
-      (tag) => tag !== tagToRemove
-    );
+    const newTagList = candidatureData.tags.filter((tag) => tag !== tagToRemove);
     setCandidatureData({ ...candidatureData, tags: newTagList });
   };
 
   return (
-    <CModal show={visible} onClose={() => setVisible(false)}>
+    <CModal show={visible} onClose={() => setVisible(false)} closeOnBackdrop={false}>
       <CModalHeader>
         <CModalTitle>New candidate posting</CModalTitle>
       </CModalHeader>
       <CForm onSubmit={handleSubmit}>
         <CModalBody>
-          <p className="text-muted">
-            Please fill the form to add a new candidature
-          </p>
-
+          <p className="text-muted">Please fill the form</p>
           <CRow>
             <CCol xs="12">
               <CFormGroup>
@@ -137,14 +122,8 @@ const NewCandidatureModal = ({ visible, setVisible }) => {
                   onChange={(e) => setCurrentTag(e.target.value)}
                 />
                 {candidatureData.tags.map((tag) => (
-                  <CBadge
-                    key={tag}
-                    shape="pill"
-                    className="my-2 mr-2 p-2 align-middle"
-                    color="dark"
-                    onClick={() => handleRemoveTag(tag)}
-                  >
-                    <CIcon name="cil-x" />
+                  <CBadge key={tag} shape="pill" className="my-2 mr-2 p-2 align-middle" color="dark" style={{"cursor": "default"}}>
+                    <CIcon name="cil-x" style={{"cursor": "pointer"}} onClick={() => handleRemoveTag(tag)} />
                     <span className="align-middle"> {tag}</span>
                   </CBadge>
                 ))}
@@ -186,9 +165,7 @@ const NewCandidatureModal = ({ visible, setVisible }) => {
                   }
                 >
                   <option value="available">Available</option>
-                  <option value="listening-to-offers">
-                    Listening to offers
-                  </option>
+                  <option value="listening-to-offers">Listening to offers</option>
                   <option value="not-available">Not available</option>
                 </CSelect>
               </CFormGroup>
@@ -200,7 +177,7 @@ const NewCandidatureModal = ({ visible, setVisible }) => {
             Close
           </CButton>
           <CButton color="success" type="submit">
-            Add candidature
+            {candidature ? "Update candidature" : "Add candidature"}
           </CButton>
         </CModalFooter>
       </CForm>

@@ -1,24 +1,8 @@
 import CIcon from "@coreui/icons-react";
-import {
-  CBadge,
-  CButton,
-  CCol,
-  CForm,
-  CFormGroup,
-  CInput,
-  CLabel,
-  CModal,
-  CModalBody,
-  CModalFooter,
-  CModalHeader,
-  CModalTitle,
-  CRow,
-  CSelect,
-  CTextarea,
-} from "@coreui/react";
-import React, { useState } from "react";
+import { CBadge, CButton, CCol, CForm, CFormGroup, CInput, CLabel, CModal, CModalBody, CModalFooter, CModalHeader, CModalTitle, CRow, CSelect, CTextarea } from "@coreui/react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createOffer } from "../../actions/offers";
+import { createOffer, updateOffer } from "../../actions/offers";
 import { cleanString } from "../../core/functions";
 
 const initialState = {
@@ -34,16 +18,22 @@ const initialState = {
   location: "",
 };
 
-const NewOfferModal = ({ visible, setVisible }) => {
+const NewOfferModal = ({ visible, setVisible, offer }) => {
   const auth = useSelector((state) => state.auth);
   const dispatch = useDispatch();
 
-  const [offerData, setOfferData] = useState({ ...initialState, creatorId: auth?.result?._id,});
+  let initialFormState = offer ? offer : initialState;
+
+  const [offerData, setOfferData] = useState({ ...initialFormState, creatorId: auth?.result?._id });
+
+  useEffect(() => {
+    setOfferData(initialFormState);
+  }, [initialFormState]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(createOffer(offerData));
-    setOfferData({ ...initialState, creatorId: auth?.result?._id,});
+    offer ? dispatch(updateOffer(offer._id, offerData)) : dispatch(createOffer(offerData));
+    setOfferData({ ...initialState, creatorId: auth?.result?._id });
     setVisible(false);
   };
 
@@ -72,7 +62,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
   };
 
   return (
-    <CModal show={visible} onClose={() => setVisible(false)}>
+    <CModal show={visible} onClose={() => setVisible(false)} closeOnBackdrop={false}>
       <CModalHeader>
         <CModalTitle>
           New job offer
@@ -81,10 +71,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
       </CModalHeader>
       <CForm onSubmit={handleSubmit}>
         <CModalBody>
-          <p className="text-muted">
-            Please fill the form to add a new job offer
-          </p>
-
+          <p className="text-muted">Please fill the form</p>
           <CRow>
             <CCol xs="12">
               <CFormGroup>
@@ -94,14 +81,13 @@ const NewOfferModal = ({ visible, setVisible }) => {
                   id="title"
                   placeholder="Title for this offer"
                   value={offerData.title}
-                  onChange={(e) =>
-                    setOfferData({ ...offerData, title: e.target.value })
-                  }
+                  onChange={(e) => setOfferData({ ...offerData, title: e.target.value })}
                   required
                 />
               </CFormGroup>
             </CCol>
           </CRow>
+
           <CRow>
             <CCol xs="12">
               <CFormGroup>
@@ -111,9 +97,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
                   id="description"
                   placeholder="Description for this offer"
                   value={offerData.description}
-                  onChange={(e) =>
-                    setOfferData({ ...offerData, description: e.target.value })
-                  }
+                  onChange={(e) => setOfferData({ ...offerData, description: e.target.value })}
                   required
                 />
               </CFormGroup>
@@ -134,14 +118,8 @@ const NewOfferModal = ({ visible, setVisible }) => {
                   onChange={(e) => setCurrentTag(e.target.value)}
                 />
                 {offerData.tags.map((tag) => (
-                  <CBadge
-                    key={tag}
-                    shape="pill"
-                    className="my-2 mr-2 p-2 align-middle"
-                    color="dark"
-                    onClick={() => handleRemoveTag(tag)}
-                  >
-                    <CIcon name="cil-x" />
+                  <CBadge key={tag} shape="pill" className="my-2 mr-2 p-2 align-middle" color="dark" style={{"cursor": "default"}}>
+                    <CIcon name="cil-x" style={{"cursor": "pointer"}} onClick={() => handleRemoveTag(tag)} />
                     <span className="align-middle"> {tag}</span>
                   </CBadge>
                 ))}
@@ -162,7 +140,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
                     setOfferData({
                       ...offerData,
                       salary: {
-                        min: e.target.value ? parseInt(e.target.value) : '',
+                        min: e.target.value ? parseInt(e.target.value) : "",
                         max: offerData.salary.max,
                       },
                     })
@@ -184,7 +162,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
                       ...offerData,
                       salary: {
                         min: offerData.salary.min,
-                        max: e.target.value ? parseInt(e.target.value) : '',
+                        max: e.target.value ? parseInt(e.target.value) : "",
                       },
                     })
                   }
@@ -198,14 +176,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
             <CCol xs="6">
               <CFormGroup>
                 <CLabel htmlFor="contract-type">Contract type</CLabel>
-                <CSelect
-                  custom
-                  id="contract-type"
-                  value={offerData.contractType}
-                  onChange={(e) =>
-                    setOfferData({ ...offerData, contractType: e.target.value })
-                  }
-                >
+                <CSelect custom id="contract-type" value={offerData.contractType} onChange={(e) => setOfferData({ ...offerData, contractType: e.target.value })}>
                   <option value="full-time">Full time</option>
                   <option value="part-time">Part time</option>
                   <option value="extra-hours">Extra hours</option>
@@ -223,8 +194,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
                   onChange={(e) =>
                     setOfferData({
                       ...offerData,
-                      permitRequired:
-                        e.target.value === "required" ? true : false,
+                      permitRequired: e.target.value === "required" ? true : false,
                     })
                   }
                 >
@@ -244,9 +214,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
                   id="location"
                   placeholder="Location for this offer"
                   value={offerData.location}
-                  onChange={(e) =>
-                    setOfferData({ ...offerData, location: e.target.value })
-                  }
+                  onChange={(e) => setOfferData({ ...offerData, location: e.target.value })}
                   required
                 />
               </CFormGroup>
@@ -258,7 +226,7 @@ const NewOfferModal = ({ visible, setVisible }) => {
             Close
           </CButton>
           <CButton color="success" type="submit">
-            Add offer
+            {offer ? "Update offer" : "Add offer"}
           </CButton>
         </CModalFooter>
       </CForm>

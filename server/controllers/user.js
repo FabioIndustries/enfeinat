@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 import UserModel from "../models/user.js";
 
 dotenv.config();
@@ -17,8 +18,7 @@ export const signin = async (req, res) => {
 
     const isPasswordCorrect = await bcrypt.compare(password, dbUser.password);
 
-    if (!isPasswordCorrect)
-      return res.status(400).json({ error_code: "invalid_login", message: "Invalid credentials" });
+    if (!isPasswordCorrect) return res.status(400).json({ error_code: "invalid_login", message: "Invalid credentials" });
 
     const token = jwt.sign({ email: dbUser.email, _id: dbUser._id }, secret, {
       expiresIn: "1d",
@@ -36,10 +36,7 @@ export const signup = async (req, res) => {
   try {
     const dbUser = await UserModel.findOne({ $or: [{ email }, { userName }] });
 
-    if (dbUser)
-      return res
-        .status(400)
-        .json({ error_code: "existing_user", message: "User already exists" });
+    if (dbUser) return res.status(400).json({ error_code: "existing_user", message: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -59,4 +56,47 @@ export const signup = async (req, res) => {
 
     console.error(error);
   }
+};
+
+export const updateUser = async (req, res) => {
+  const _id = req.userId;
+  const { email, userName } = req.body;
+
+  if (!email || !userName) {
+    return res.status(404).send("Incomplete request");
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send("No user with that id");
+
+  const userNameExists = await UserModel.findOne({
+    userName,
+    _id: { $ne: _id },
+  });
+  if (userNameExists)
+    return res.status(400).json({
+      error_code: "username_in_use",
+      message: "That username is already being used",
+    });
+
+  const emailExists = await UserModel.findOne({
+    email,
+    _id: { $ne: _id },
+  });
+  if (emailExists)
+    return res.status(400).json({
+      error_code: "email_in_use",
+      message: "That email is already being used",
+    });
+
+  let updatedUser;
+
+  if (req.body.password?.length >= 3) {
+    const hashedPassword = await bcrypt.hash(req.body.password, 12);
+    updatedUser = await UserModel.findByIdAndUpdate(_id, { ...req.body, _id, password: hashedPassword }, { new: true });
+  } else {
+    delete req.body.password;
+    updatedUser = await UserModel.findByIdAndUpdate(_id, { ...req.body, _id }, { new: true });
+  }
+
+  res.json(updatedUser);
 };

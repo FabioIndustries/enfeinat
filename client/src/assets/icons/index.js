@@ -37,6 +37,10 @@ import {
   cifPl
 } from '@coreui/icons'
 import {
+  cilFilterX,
+  cilActionUndo,
+  cilAt,
+  cilEqualizer,
   cilPowerStandby,
   cilExitToApp,
   cilHeart,
@@ -84,6 +88,7 @@ import {
   cilDollar,
   cilEnvelopeLetter,
   cilEnvelopeOpen,
+  cilEnvelopeClosed,
   cilEuro,
   cilGlobeAlt,
   cilGrid,
@@ -149,6 +154,10 @@ export const icons = Object.assign({}, {
   logo,
   logoNegative
 }, {
+  cilFilterX,
+  cilActionUndo,
+  cilAt,
+  cilEqualizer,
   cilPowerStandby,
   cilExitToApp,
   cilHeart,
@@ -196,6 +205,7 @@ export const icons = Object.assign({}, {
   cilDollar,
   cilEnvelopeLetter,
   cilEnvelopeOpen,
+  cilEnvelopeClosed,
   cilEuro,
   cilGlobeAlt,
   cilGrid,

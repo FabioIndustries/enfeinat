@@ -47,9 +47,7 @@ export const createOffer = async (req, res) => {
 
   try {
     await newOffer.save();
-    res
-      .status(201)
-      .json({ ...newOffer._doc, creator: [{ userName: user.userName }] });
+    res.status(201).json({ ...newOffer._doc, creator: [{ userName: user.userName }] });
   } catch (error) {
     res.status(409).json({ message: error });
   }
@@ -59,8 +57,7 @@ export const updateOffer = async (req, res) => {
   const { id: _id } = req.params;
   const offer = req.body;
 
-  if (!mongoose.Types.ObjectId.isValid(_id))
-    return res.status(404).send("No offer with that id");
+  if (!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send("No offer with that id");
 
   const offerExists = await OfferModel.findOne({ _id, creatorId: req.userId });
   if (!offerExists)
@@ -69,20 +66,16 @@ export const updateOffer = async (req, res) => {
       message: "Couldn't find an offer with this id from this user",
     });
 
-  const updatedOffer = await OfferModel.findByIdAndUpdate(
-    _id,
-    { ...offer, _id },
-    { new: true }
-  );
+  const user = await UserModel.findOne({ _id: req.userId });
+  const updatedOffer = await OfferModel.findByIdAndUpdate(_id, { ...offer, _id }, { new: true });
 
-  res.json(updatedOffer);
+  res.json({ ...updatedOffer._doc, creator: [{ userName: user.userName }] });
 };
 
 export const deleteOffer = async (req, res) => {
   const { id: _id } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(_id))
-    return res.status(404).send("No offer with that id");
+  if (!mongoose.Types.ObjectId.isValid(_id)) return res.status(404).send("No offer with that id");
 
   const offerExists = await OfferModel.findOne({ _id, creatorId: req.userId });
   if (!offerExists)

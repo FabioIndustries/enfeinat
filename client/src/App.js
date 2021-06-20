@@ -1,15 +1,17 @@
-import { BrowserRouter, Redirect, Route, Switch } from 'react-router-dom';
-import { Sidebar } from './components/Sidebar/Sidebar';
-import { Header } from './components/Header/Header';
-import './scss/style.scss';
-import { CContainer, CFade } from '@coreui/react';
-import { Suspense } from 'react'
+import { BrowserRouter, Redirect, Route, Switch } from "react-router-dom";
+import { Sidebar } from "./components/Sidebar/Sidebar";
+import { Header } from "./components/Header/Header";
+import "./scss/style.scss";
+import { CContainer, CFade } from "@coreui/react";
+import { Suspense } from "react";
 
 // routes config
-import routes from './routes'
-import { useDispatch } from 'react-redux';
-import { initUser } from './actions/auth';
-import { getNumbers } from './actions/general';
+import routes from "./routes";
+import { useDispatch } from "react-redux";
+import { initUser } from "./actions/auth";
+import { getNumbers } from "./actions/general";
+import { getOffers } from "./actions/offers";
+import { getCandidates } from "./actions/candidates";
 
 const loading = (
   <div className="pt-3 text-center">
@@ -18,11 +20,12 @@ const loading = (
 );
 
 function App() {
-
   const dispatch = useDispatch();
 
   dispatch(initUser());
   dispatch(getNumbers());
+  dispatch(getOffers());
+  dispatch(getCandidates());
 
   return (
     <BrowserRouter>
@@ -36,18 +39,21 @@ function App() {
                 <Suspense fallback={loading}>
                   <Switch>
                     {routes.map((route, idx) => {
-                      return route.component && (
-                        <Route
-                          key={idx}
-                          path={route.path}
-                          exact={route.exact}
-                          name={route.name}
-                          render={props => (
-                            <CFade>
-                              <route.component {...props} />
-                            </CFade>
-                          )} />
-                      )
+                      return (
+                        route.component && (
+                          <Route
+                            key={idx}
+                            path={route.path}
+                            exact={route.exact}
+                            name={route.name}
+                            render={(props) => (
+                              <CFade>
+                                <route.component {...props} />
+                              </CFade>
+                            )}
+                          />
+                        )
+                      );
                     })}
                     <Redirect from="/" to="/home" />
                   </Switch>

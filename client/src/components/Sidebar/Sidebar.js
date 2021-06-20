@@ -17,15 +17,25 @@ import decode from "jwt-decode";
 import { logout } from "../../actions/auth";
 import { useLocation } from "react-router";
 
-const loggedInPages = ["Logout"];
+const loggedInPages = ["Logout", "Settings", "Messaging"];
 
 const loggedOutPages = ["Login", "Sign up"];
+
+const getUnreadMessagesCount = (messages, auth) => {
+  let count = 0;
+  for (let message of messages) {
+    if (!message.isRead && auth.result._id !== message.creatorId)
+    count ++;
+  }
+  return count;
+}
 
 export const Sidebar = () => {
   const dispatch = useDispatch();
   const show = useSelector((state) => state.sidebarShow);
   const auth = useSelector((state) => state.auth);
   const general = useSelector((state) => state.general);
+  const messages = useSelector((state) => state.messages);
   const location = useLocation();
   const [updatedNavItems, setUpdatedNavItems] = useState(NavItems);
 
@@ -33,6 +43,9 @@ export const Sidebar = () => {
     let navItems = NavItems;
     navItems = changeNavItemBadge({navItems, name: 'Offers', value: general.offers });
     navItems = changeNavItemBadge({navItems, name: 'Candidates', value: general.candidatures });
+    if (auth) {
+      navItems = changeNavItemBadge({navItems, name: 'Messaging', value:  getUnreadMessagesCount(messages, auth) });
+    }
     if (auth) {
       setUpdatedNavItems(
         navItems.filter((item) => !loggedOutPages.includes(item.name))
@@ -42,7 +55,7 @@ export const Sidebar = () => {
         navItems.filter((item) => !loggedInPages.includes(item.name))
       );
     }
-  }, [auth, setUpdatedNavItems, general]);
+  }, [auth, setUpdatedNavItems, general, messages]);
 
   useEffect(() => {
     if (auth) {

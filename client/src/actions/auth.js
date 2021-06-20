@@ -1,10 +1,14 @@
 import * as api from "../api/index.js";
+import { getConversations } from "./conversations.js";
 import { getNumbers } from "./general.js";
+import { registerAuthedUser } from "./sockets.js";
 
 export const login = (formData) => async (dispatch) => {
   try {
     const { data } = await api.login(formData);
     dispatch({ type: "LOGIN", data });
+    dispatch(getConversations());
+    dispatch(registerAuthedUser(data));
     return { success: true };
   } catch (error) {
     if (error.response.status !== 200) {
@@ -30,6 +34,20 @@ export const signup = (formData) => async (dispatch) => {
   }
 };
 
+export const updateUser = (formData) => async (dispatch) => {
+  try {
+    const { data } = await api.updateUser(formData);
+    dispatch({ type: "UPDATE_USER", data });
+    return { success: true };
+  } catch (error) {
+    if (error.response.status !== 200) {
+      const data = error.response.data;
+      return { success: false, error_code: data.error_code };
+    }
+    console.error(error);
+  }
+};
+
 export const logout = () => async (dispatch) => {
   try {
     dispatch({ type: "LOGOUT" });
@@ -40,10 +58,15 @@ export const logout = () => async (dispatch) => {
 
 export const initUser = () => async (dispatch) => {
   try {
+    const profile = JSON.parse(localStorage.getItem("profile"));
     dispatch({
       type: "INIT_USER",
-      data: JSON.parse(localStorage.getItem("profile")),
+      data: profile,
     });
+    if (profile) {
+      dispatch(getConversations());
+      dispatch(registerAuthedUser(profile));
+    }
   } catch (error) {
     console.error(error);
   }
