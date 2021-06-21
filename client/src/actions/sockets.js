@@ -2,6 +2,7 @@ import socketClient from "socket.io-client";
 import dotenv from "dotenv";
 import { getMessages } from "./messages";
 import { showNewMessageAlert } from "./alerts";
+import { getConversations } from "./conversations";
 
 dotenv.config();
 const socket = socketClient(process.env.REACT_APP_API_URL);
@@ -22,6 +23,7 @@ export const connectSocket = () => async (dispatch) => {
       dispatch(showNewMessageAlert(""));
       dispatch(showNewMessageAlert("New message!"));
       dispatch(getMessages([data.conversationId]));
+      dispatch(getConversations());
     });
   });
 };

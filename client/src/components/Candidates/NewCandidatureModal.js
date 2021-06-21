@@ -152,7 +152,7 @@ const NewCandidatureModal = ({ visible, setVisible, candidature }) => {
             </CCol>
             <CCol xs="6">
               <CFormGroup>
-                <CLabel htmlFor="availability">Contract type</CLabel>
+                <CLabel htmlFor="availability">Availability</CLabel>
                 <CSelect
                   custom
                   id="availability"
